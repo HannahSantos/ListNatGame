@@ -413,6 +413,7 @@ theorem decide_congr {p q : Prop} [Decidable p] [Decidable q] (h : p ↔ q) :
   | true => exact decide_true (h.2 <| of_decide_true h')
 
 -- Level 4.1
+
 theorem sum_distr_concat (xs ys : myList Nat) :
   sum (concat xs ys) = sum xs + sum ys :=
 by
@@ -421,6 +422,7 @@ by
   | cons x xs h => rw [concat, sum, h, sum, Nat.add_assoc]
 
 -- Level 4.2
+
 theorem product_distr_concat (xs ys : myList Nat) :
   product (concat xs ys) = product xs * product ys :=
 by
@@ -429,6 +431,7 @@ by
   | cons x xs h => rw [concat, product, h, product, Nat.mul_assoc]
 
 -- Level 4.3
+
 theorem length_concat_filter_even_odd_list (l : myList Nat):
   length (concat (filter even l) (filter odd l)) = length l :=
 by
@@ -454,6 +457,7 @@ by
         h]
 
 -- Level 4.4
+
 theorem filter_append (n : α) (ns : myList α) (p : α → Bool):
   filter p (append n ns) = (if p n then append n (filter p ns) else (filter p ns)) :=
 by
@@ -480,6 +484,7 @@ by
     rw [if_pos rfl, if_pos rfl, reverse, h]
 
 -- Level 4.5
+
 theorem length_same_addNat (n : Nat) (l : myList Nat) :
   length (addNat n l) = length l :=
 by
@@ -489,6 +494,7 @@ by
                        length, ← addNat, h]
 
 -- Level 4.6
+
 theorem sum_addNat (n : Nat) (l : myList Nat) :
   sum (addNat n l) = (n * length l) + sum l :=
 by
@@ -514,6 +520,7 @@ by
         Nat.add_assoc x (n * (1 + 1 * length xs)) (sum xs)]
 
 -- Level 4.7
+
 theorem sum_multNat (n : Nat) (l : myList Nat) :
   sum (multNat n l) = n * sum l :=
 by
@@ -528,6 +535,7 @@ by
         Nat.left_distrib]
 
 -- Level 4.8
+
 theorem product_multNat (n : Nat) (l : myList Nat) :
   product (multNat n l) = (n ^ length l) * product l:=
 by
@@ -547,6 +555,7 @@ by
         Nat.mul_assoc (x * n) (n ^ length xs) (product xs)]
 
 -- Level 4.9
+
 theorem one_pow (m : Nat) :
   1 ^ m = 1 :=
 by
@@ -583,6 +592,7 @@ by
         product, mul_pow]
 
 -- Level 4.10
+
 theorem length_matters {l l' : myList α} :
   l = l' → length l = length l' :=
 by
@@ -670,6 +680,7 @@ by
       rw [decide_congr add_le_add_iff]
 
 -- Level 4.11
+
 theorem or_inl {a b : Bool} (H : a) : a || b :=
 by
   rw [or, H]
@@ -841,6 +852,7 @@ by
     rw [product, Any, even_product, h]
 
 -- Level 4.12
+
 theorem even_sum_even_length_filter_odd (l : myList Nat) :
   even (sum l) = even (length (filter odd l)) :=
 by
@@ -863,6 +875,7 @@ by
         Bool.or_false]
 
 -- Level 4.13
+
 theorem zero_Add_eq_zero_and_zero (a b : Nat) :
   Zero (a + b) = (Zero a && Zero b) :=
 by
@@ -889,6 +902,7 @@ by
     rw [sum, All, zero_Add_eq_zero_and_zero, h]
 
 -- Level 4.14
+
 theorem zero_succ_false (a : Nat) :
   Zero (succ a) = false :=
 by
@@ -927,6 +941,7 @@ by
         h]
 
 -- Level 4.15
+
 theorem addNat_Add (n m : Nat) (l : myList Nat) :
   addNat (n + m) l = addNat n (addNat m l) :=
 by
@@ -942,6 +957,7 @@ by
         Nat.add_comm m n]
 
 -- Level 4.16
+
 theorem multNat_Mult (n m : Nat) (l : myList Nat) :
   multNat (n * m) l = multNat n (multNat m l) :=
 by
