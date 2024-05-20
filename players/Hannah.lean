@@ -320,12 +320,12 @@ theorem lt_succ_succ_self (n : Nat) :
 by
   have h: (succ n < succ (succ n) ∨ succ n ≥ succ (succ n)) := Nat.lt_or_ge (succ n) (succ (succ n))
   apply Or.elim h
-  intro h'
-  have h1: (n ≤ succ n) := Nat.le_succ n
-  exact Nat.lt_of_le_of_lt h1 h'
-  intro h2
-  have h_boom: (¬succ (succ n) ≤ succ n) := Nat.not_succ_le_self (succ n)
-  exact False.elim (h_boom h2)
+  · intro h'
+    have h1: (n ≤ succ n) := Nat.le_succ n
+    exact Nat.lt_of_le_of_lt h1 h'
+  · intro h2
+    have h_boom: (¬succ (succ n) ≤ succ n) := Nat.not_succ_le_self (succ n)
+    exact False.elim (h_boom h2)
 
 theorem odd_eq_not_even (n : Nat) :
   odd n = !even n :=
@@ -363,14 +363,12 @@ theorem not_congr (h : P ↔ Q) :
   ¬P ↔ ¬Q :=
 by
   apply Iff.intro
-  intro np
-  intro q
-  suffices p : P from np p
-  exact h.mpr q
-  intro nq
-  intro p
-  suffices q : Q from nq q
-  exact h.mp p
+  · intro np q
+    suffices p : P from np p
+    · exact h.mpr q
+  · intro nq p
+    suffices q : Q from nq q
+    . exact h.mp p
 
 theorem decide_iff (p : Prop) [d : Decidable p] : decide p = true ↔ p := by simp
 
@@ -384,17 +382,17 @@ theorem bool_iff_false {b : Bool} :
   ¬b ↔ b = false :=
 by
   cases b
-  apply Iff.intro
-  intro
-  rfl
-  intro _ h'
-  exact false_not_true h'
-  apply Iff.intro
-  intro h
-  suffices h': (true = true) from False.elim (h h')
-  rfl
-  intro h
-  exact False.elim (false_not_true h.symm)
+  · refine ⟨?_, ?_⟩
+    · intro
+      rfl
+    · intro _ h'
+      exact false_not_true h'
+  · refine ⟨?_, ?_⟩
+    · intro h
+      suffices h': (true = true) from False.elim (h h')
+      · rfl
+    · intro h
+      exact False.elim (false_not_true h.symm)
 
 theorem bool_eq_false {b : Bool} : ¬b → b = false :=
   bool_iff_false.1
@@ -476,11 +474,11 @@ by
   | cons x xs h =>
     rw [filter, append, filter, h]
     cases p x
-    rw [if_neg false_not_true, if_neg false_not_true]
-    rw [if_pos rfl, if_pos rfl, append]
-    cases p n
-    rw [if_neg false_not_true, if_neg false_not_true]
-    rw [if_pos rfl, if_pos rfl]
+    · rw [if_neg false_not_true, if_neg false_not_true]
+    · rw [if_pos rfl, if_pos rfl, append]
+      cases p n
+      · rw [if_neg false_not_true, if_neg false_not_true]
+      · rw [if_pos rfl, if_pos rfl]
 
 theorem rev_filter_eq_filter_rev (l : myList Nat):
   reverse (filter even l) = filter even (reverse l) :=
@@ -490,8 +488,8 @@ by
   | cons n ns h =>
     rw [filter, reverse, filter_append]
     cases even n
-    rw [if_neg false_not_true, if_neg false_not_true, h]
-    rw [if_pos rfl, if_pos rfl, reverse, h]
+    · rw [if_neg false_not_true, if_neg false_not_true, h]
+    · rw [if_pos rfl, if_pos rfl, reverse, h]
 
 -- Level 4.5
 
@@ -656,24 +654,24 @@ by
 theorem add_le_add_iff {a b n : Nat}  :
   a + n ≤ b + n ↔ a ≤ b :=
 by
-  apply Iff.intro
-  intro h
-  induction n with
-  | zero =>
-    rw [Nat.add_zero, Nat.add_zero] at h
-    exact h
-  | succ n' h' =>
-    rw [Nat.add_succ, Nat.add_succ] at h
-    suffices h'': (a + n' ≤ b + n') from h' h''
-    exact Nat.le_of_succ_le_succ h
-  intro h
-  induction n with
-  | zero =>
-    rw [Nat.add_zero, Nat.add_zero]
-    exact h
-  | succ n' h' =>
-    rw [Nat.add_succ, Nat.add_succ]
-    exact Nat.succ_le_succ h'
+  refine ⟨?_, ?_⟩
+  · intro h
+    induction n with
+    | zero =>
+      rw [Nat.add_zero, Nat.add_zero] at h
+      exact h
+    | succ n' h' =>
+      rw [Nat.add_succ, Nat.add_succ] at h
+      suffices h'': (a + n' ≤ b + n') from h' h''
+      exact Nat.le_of_succ_le_succ h
+  · intro h
+    induction n with
+    | zero =>
+      rw [Nat.add_zero, Nat.add_zero]
+      exact h
+    | succ n' h' =>
+      rw [Nat.add_succ, Nat.add_succ]
+      exact Nat.succ_le_succ h'
 
 theorem isSorted_addNat (n : Nat) (l : myList Nat) :
   isSorted (addNat n l) = isSorted l :=
@@ -686,8 +684,8 @@ by
     cases xs with
     | nil =>
       rw [fmap, isSorted, isSorted]
-      exact cons_one_neq_cons_more
-      exact cons_one_neq_cons_more
+      · exact cons_one_neq_cons_more
+      · exact cons_one_neq_cons_more
     | cons y ys =>
       rw [fmap] at h
       rw [fmap, fmap, isSorted, h, isSorted]
@@ -703,12 +701,12 @@ theorem or_comm : ∀ a b, (a || b) = (b || a) :=
 by
   intro a b
   cases a
-  cases b
-  rfl
-  rw [or, or]
-  cases b
-  rw [or, or]
-  rfl
+  · cases b
+    rfl
+    rw [or, or]
+  · cases b
+    rw [or, or]
+    rfl
 
 theorem or_inr {a b : Bool} (H : b) : a || b :=
 by
@@ -723,20 +721,20 @@ by
     | 0 =>
       rw [Nat.zero_add, odd_eq_not_even, odd_eq_not_even]
       cases even b
-      rw [Bool.and_false, Bool.not_false,
-          Bool.and_true, even, Bool.false_or,
-          Bool.not_true]
-      rw [even, Bool.and_self, Bool.true_or]
+      · rw [Bool.and_false, Bool.not_false,
+            Bool.and_true, even, Bool.false_or,
+            Bool.not_true]
+      · rw [even, Bool.and_self, Bool.true_or]
     | succ 0 =>
       rw [Nat.succ_add, Nat.zero_add,
           odd_eq_not_even, odd_eq_not_even,
           ← even_succ]
       cases even b
-      rw [Bool.not_false, even, odd, Bool.false_and,
-          Bool.not_false, Bool.and_true,
-          Bool.or_true]
-      rw [Bool.not_true, even, odd, Bool.false_and,
-          Bool.and_false, Bool.or_false]
+      · rw [Bool.not_false, even, odd, Bool.false_and,
+            Bool.not_false, Bool.and_true,
+            Bool.or_true]
+      · rw [Bool.not_true, even, odd, Bool.false_and,
+            Bool.and_false, Bool.or_false]
     | succ (succ a') =>
       rw [Nat.succ_add (succ a') b,
           Nat.succ_add a' b, odd,
@@ -749,28 +747,28 @@ theorem odd_Add (a b : Nat) :
 by
   rw [odd_eq_not_even, even_Add, odd_eq_not_even, odd_eq_not_even]
   cases even a
-  rw [Bool.false_and, Bool.not_false,
-      Bool.true_and, Bool.false_and,
-      Bool.true_and, Bool.false_or,
-      Bool.false_or, Bool.not_not]
-  rw [Bool.true_and, Bool.not_true,
-      Bool.false_and, Bool.or_false,
-      Bool.true_and, Bool.false_and,
-      Bool.or_false]
+  · rw [Bool.false_and, Bool.not_false,
+        Bool.true_and, Bool.false_and,
+        Bool.true_and, Bool.false_or,
+        Bool.false_or, Bool.not_not]
+  · rw [Bool.true_and, Bool.not_true,
+        Bool.false_and, Bool.or_false,
+        Bool.true_and, Bool.false_and,
+        Bool.or_false]
 
 theorem not_and (b : Bool) :
   (!b && b) = false :=
 by
   cases b
-  rw [Bool.and_false]
-  rw [Bool.not_true, Bool.false_and]
+  · rw [Bool.and_false]
+  · rw [Bool.not_true, Bool.false_and]
 
 theorem and_comm (a b : Bool) :
   (a && b) = (b && a) :=
 by
   cases a
-  rw [Bool.and_false, Bool.false_and]
-  rw [Bool.and_true, Bool.true_and]
+  · rw [Bool.and_false, Bool.false_and]
+  · rw [Bool.and_true, Bool.true_and]
 
 theorem and_not (b : Bool) :
   (b && !b) = false :=
@@ -790,19 +788,19 @@ by
       Bool.false_or, Bool.or_false, Bool.or_false,
       Bool.or_false]
   cases b
-  rw [Bool.not_false, Bool.false_and,
-      Bool.false_and, Bool.false_and,
-      Bool.and_false, Bool.or_false,
-      Bool.and_false, Bool.true_and,
-      Bool.false_or, Bool.true_and,
-      Bool.or_false]
-  rw [Bool.not_true, Bool.false_and,
-      Bool.false_and, Bool.and_false,
-      Bool.false_and, Bool.false_or,
-      Bool.true_and, Bool.true_and,
-      Bool.and_false, Bool.or_false,
-      Bool.or_false, Bool.and_self,
-      Bool.and_self]
+  · rw [Bool.not_false, Bool.false_and,
+        Bool.false_and, Bool.false_and,
+        Bool.and_false, Bool.or_false,
+        Bool.and_false, Bool.true_and,
+        Bool.false_or, Bool.true_and,
+        Bool.or_false]
+  · rw [Bool.not_true, Bool.false_and,
+        Bool.false_and, Bool.and_false,
+        Bool.false_and, Bool.false_or,
+        Bool.true_and, Bool.true_and,
+        Bool.and_false, Bool.or_false,
+        Bool.or_false, Bool.and_self,
+        Bool.and_self]
 
 theorem even_succ_succ_product (a b : Nat) :
   even ((succ (succ a)) * b) = even (a * b) :=
@@ -855,7 +853,8 @@ by
     | 0 => rw [Nat.zero_mul, even, Bool.true_or]
     | 1 => rw [Nat.one_mul, even, odd, Bool.false_or]
     | succ (succ k) =>
-      rw [even, even_succ_succ_product, odd, ih k (lt_succ_succ_self k)]
+      rw [even, even_succ_succ_product,
+          odd, ih k (lt_succ_succ_self k)]
 
 theorem even_list_product (l : myList Nat) :
   even (product l) = Any even l :=
@@ -878,18 +877,18 @@ by
     rw [filter, sum, foldl, even_Add, odd_eq_not_even,
         odd_eq_not_even, h]
     cases even x
-    rw [if_pos Bool.not_false,
-        Bool.not_false,
-        Bool.false_and,
-        Bool.true_and,
-        Bool.false_or,
-        length,
-        even_succ]
-    rw [Bool.not_true,
-        if_neg false_not_true,
-        Bool.false_and,
-        Bool.true_and,
-        Bool.or_false]
+    · rw [if_pos Bool.not_false,
+          Bool.not_false,
+          Bool.false_and,
+          Bool.true_and,
+          Bool.false_or,
+          length,
+          even_succ]
+    · rw [Bool.not_true,
+          if_neg false_not_true,
+          Bool.false_and,
+          Bool.true_and,
+          Bool.or_false]
 
 -- Level 4.13
 
@@ -900,15 +899,15 @@ by
   | zero =>
     rw [Nat.zero_add]
     cases Zero b
-    rw [Bool.and_false]
-    rw [Bool.and_true, Zero]
+    · rw [Bool.and_false]
+    · rw [Bool.and_true, Zero]
   | succ a' =>
     rw [Nat.succ_add]
     cases Zero b
-    rw [Zero, Bool.and_false]
-    rfl
-    rw [Bool.and_true, Zero, Zero]
-    rfl
+    · rw [Zero, Bool.and_false]
+      rfl
+    · rw [Bool.and_true, Zero, Zero]
+      rfl
 
 theorem zero_sum_all_zero (l : myList Nat) :
   Zero (sum l) = All Zero l :=
