@@ -38,13 +38,15 @@ def elem : Nat → myList Nat → Bool
   | _, nil => false
   | n, m::l => n == m || elem n l
 
+def foldl : (α → β → β) → β → myList α → β
+  | _, e, nil => e
+  | op, e, x::xs => op x (foldl op e xs)
+
 def sum : myList Nat → Nat
-  | nil => 0
-  | n::l => n + (sum l)
+  := fun l => foldl (· + ·) 0 l
 
 def product : myList Nat → Nat
-  | nil => 1
-  | n::l => n * (product l)
+  := fun l => foldl (· * ·) 1 l
 
 -- Same as (++)
 def concat : myList α → myList α → myList α
@@ -151,7 +153,7 @@ def elemIndices : Nat → myList Nat → myList Nat
   | _, nil => nil
 
 def pw : (α → β → γ) → myList α → myList β → myList γ
-  | o, n::l, m::l' => (o n m)::(pw o l l')
+  | op, n::l, m::l' => (op n m)::(pw op l l')
   | _, _, _ => nil
 
 def pwAdd : myList Nat → myList Nat → myList Nat
@@ -225,7 +227,7 @@ by
   rw [reverse]
 
 theorem cool_theorem (x : α) (l : myList α):
-  reverse (append x l) = cons x (reverse l) :=
+  reverse (append x l) = x::(reverse l) :=
 by
   induction l with
   | nil => rw [append, reverse, reverse, reverse, append]
@@ -417,16 +419,24 @@ theorem sum_distr_concat (xs ys : myList Nat) :
   sum (concat xs ys) = sum xs + sum ys :=
 by
   induction xs with
-  | nil => rw [concat, sum, Nat.zero_add]
-  | cons x xs h => rw [concat, sum, h, sum, Nat.add_assoc]
+  | nil => rw [concat, sum, sum, foldl, Nat.zero_add]
+  | cons x xs h =>
+    rw [sum] at h
+    rw [concat, sum, foldl, h,
+        sum, sum, sum, foldl,
+        Nat.add_assoc]
 
 -- Level 4.2
 theorem product_distr_concat (xs ys : myList Nat) :
   product (concat xs ys) = product xs * product ys :=
 by
   induction xs with
-  | nil => rw [concat, product, Nat.one_mul]
-  | cons x xs h => rw [concat, product, h, product, Nat.mul_assoc]
+  | nil => rw [concat, product, product, foldl, Nat.one_mul]
+  | cons x xs h =>
+    rw [product] at h
+    rw [concat, product, foldl,
+        h, product, product,
+        product, foldl, Nat.mul_assoc]
 
 -- Level 4.3
 theorem length_concat_filter_even_odd_list (l : myList Nat):
@@ -496,8 +506,9 @@ by
   | nil => rw [addNat, fmap, length,
                Nat.mul_zero, Nat.zero_add]
   | cons x xs h =>
-    rw [addNat] at h
-    rw [addNat, fmap, sum, h,
+    rw [addNat, sum] at h
+    rw [addNat, fmap, sum, sum,
+        foldl, h,
         Nat.add_assoc,
         ← Nat.add_assoc n (n * length xs) (sum xs),
         ← Nat.mul_one n,
@@ -508,22 +519,23 @@ by
         Nat.left_distrib 1 (length xs) 1,
         Nat.mul_one 1,
         Nat.add_comm (1 * length xs) 1,
-        sum,
-        ← Nat.add_assoc (n * (1 + 1 * length xs)) x (sum xs),
+        sum, foldl,
+        ← Nat.add_assoc (n * (1 + 1 * length xs)) x (foldl (fun x x_1 => x + x_1) 0 xs),
         Nat.add_comm (n * (1 + 1 * length xs)) x,
-        Nat.add_assoc x (n * (1 + 1 * length xs)) (sum xs)]
+        Nat.add_assoc x (n * (1 + 1 * length xs)) (foldl (fun x x_1 => x + x_1) 0 xs)]
 
 -- Level 4.7
 theorem sum_multNat (n : Nat) (l : myList Nat) :
   sum (multNat n l) = n * sum l :=
 by
   induction l with
-  | nil => rw [multNat, sum, Nat.mul_zero,
-               fmap, sum]
+  | nil => rw [multNat, sum, sum,
+               foldl, Nat.mul_zero,
+               fmap, foldl]
   | cons x xs h =>
-    rw [multNat] at h
-    rw [multNat, fmap,
-        sum, h, sum,
+    rw [multNat, sum, sum] at h
+    rw [multNat, fmap, sum,
+        foldl, h, sum, foldl,
         Nat.mul_comm x n,
         Nat.left_distrib]
 
@@ -533,18 +545,20 @@ theorem product_multNat (n : Nat) (l : myList Nat) :
 by
   induction l with
   | nil => rw [multNat, length, product,
-               Nat.pow_zero, Nat.mul_one,
-               fmap, product]
+               Nat.pow_zero, product,
+               foldl, Nat.mul_one,
+               fmap, foldl]
   | cons x xs h =>
-    rw [multNat] at h
-    rw [multNat, fmap, product, h, length, product,
-        Nat.pow_succ n (length xs),
-        Nat.mul_assoc (n ^ length xs) n (x * product xs),
-        ← Nat.mul_assoc n x (product xs),
+    rw [multNat, product, product] at h
+    rw [multNat, fmap, product, foldl, h, length, product,
+        Nat.pow_succ n (length xs), foldl,
+        Nat.mul_assoc (n ^ length xs) n (x * foldl (fun x x_1 => x * x_1) 1 xs),
+        ← Nat.mul_assoc n x (foldl (fun x x_1 => x * x_1) 1 xs),
         Nat.mul_comm n x,
-        ← Nat.mul_assoc (n ^ length xs) (x * n) (product xs),
+        ← Nat.mul_assoc (n ^ length xs) (x * n) (foldl (fun x x_1 => x * x_1) 1 xs),
         Nat.mul_comm (n ^ length xs) (x * n),
-        Nat.mul_assoc (x * n) (n ^ length xs) (product xs)]
+        Nat.mul_assoc (x * n) (n ^ length xs) (foldl (fun x x_1 => x * x_1) 1 xs)]
+
 
 -- Level 4.9
 theorem one_pow (m : Nat) :
@@ -574,13 +588,13 @@ theorem product_expNat (n : Nat) (l : myList Nat) :
   product (expNat n l) = (product l) ^ n :=
 by
   induction l with
-  | nil => rw [expNat, product,
-               one_pow, fmap, product]
+  | nil => rw [expNat, product, product,
+               foldl, one_pow, fmap, foldl]
   | cons x xs h =>
-    rw [expNat] at h
-    rw [expNat, fmap,
-        product, h,
-        product, mul_pow]
+    rw [expNat, product, product] at h
+    rw [expNat, fmap, product,
+        foldl, h, product,
+        foldl, mul_pow]
 
 -- Level 4.10
 theorem length_matters {l l' : myList α} :
@@ -836,18 +850,21 @@ theorem even_list_product (l : myList Nat) :
   even (product l) = Any even l :=
 by
   induction l with
-  | nil => rw [product, even, odd, Any]
+  | nil => rw [product, foldl, even, odd, Any]
   | cons x xs h =>
-    rw [product, Any, even_product, h]
+    rw [product] at h
+    rw [product, foldl, Any, even_product, h]
 
 -- Level 4.12
 theorem even_sum_even_length_filter_odd (l : myList Nat) :
   even (sum l) = even (length (filter odd l)) :=
 by
   induction l with
-  | nil => rw [sum, filter, length]
+  | nil => rw [sum, foldl, filter, length]
   | cons x xs h =>
-    rw [filter, sum, even_Add, odd_eq_not_even, odd_eq_not_even, h]
+    rw [sum] at h
+    rw [filter, sum, foldl, even_Add, odd_eq_not_even,
+        odd_eq_not_even, h]
     cases even x
     rw [if_pos Bool.not_false,
         Bool.not_false,
@@ -884,9 +901,10 @@ theorem zero_sum_all_zero (l : myList Nat) :
   Zero (sum l) = All Zero l :=
 by
   induction l with
-  | nil => rw [sum, All, Zero]
+  | nil => rw [sum, foldl, All, Zero]
   | cons x xs h =>
-    rw [sum, All, zero_Add_eq_zero_and_zero, h]
+    rw [sum] at h
+    rw [sum, foldl, All, zero_Add_eq_zero_and_zero, h]
 
 -- Level 4.14
 theorem zero_succ_false (a : Nat) :
@@ -912,17 +930,17 @@ by
           zero_succ_false,
           zero_succ_false,
           Bool.and_false,
-          Bool.and_false]
-      rfl
+          Bool.and_false,
+          Bool.or_false]
 
 theorem zero_product_any_zero (l : myList Nat) :
   Zero (product l) = Any Zero l :=
 by
   induction l with
-  | nil => rw [product, Any, Zero]
+  | nil => rw [product, foldl, Any, Zero]
   | cons x xs h =>
-    rw [product,
-        Any,
+    rw [product] at h
+    rw [product, foldl, Any,
         zero_Mult_eq_zero_or_zero,
         h]
 
